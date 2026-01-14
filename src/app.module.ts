@@ -1,6 +1,8 @@
+import { CacheModule } from '@nestjs/cache-manager';
 import { Global, Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { redisStore } from 'cache-manager-redis-store';
 
 @Global()
 @Module({
@@ -18,6 +20,16 @@ import { TypeOrmModule } from '@nestjs/typeorm';
       database: process.env.POSTGRES_DB,
       autoLoadEntities: true,
       synchronize: true,
+    }),
+    CacheModule.register({
+      isGlobal: true,
+      imports: [ConfigModule],
+      useFactory: (config: ConfigService) => ({
+        store: redisStore,
+        host: config.get('REDIS_HOST'),
+        port: config.get('REDIS_PORT'),
+        ttl: config.get('REDIS_TTL'),
+      })
     })
   ],
 })
