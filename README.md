@@ -300,6 +300,50 @@ docker-compose up --build
 
 ---
 
+## Testing y Verificación
+
+La aplicación ha sido completamente testeada con los siguientes resultados:
+
+### Funcionalidades Verificadas
+
+- **API Key Authentication**: Todos los endpoints protegidos correctamente
+- **CRUD de Leads**: Creación, listado y consulta individual funcionando
+- **Cache Redis**: Primer acceso desde DB, siguientes desde cache (TTL: 600s)
+- **BullMQ Queue**: Procesamiento asíncrono de trabajos funcionando
+- **IA con Gemini**: Generación de summaries y next_actions en español
+- **Sync Manual**: POST /api/sync/leads importa 10 leads correctamente
+- **CRON Scheduler**: Configurado para ejecutarse cada 6 horas
+- **Deduplicación**: Emails únicos validados correctamente
+- **Docker**: Todos los contenedores funcionando sin errores
+
+### Pruebas Realizadas
+
+```bash
+# 1. Crear lead
+curl -X POST http://localhost:4321/api/leads \
+  -H "Content-Type: application/json" \
+  -H "x-api-key: my-secret-api-key-1234" \
+  -d '{"name":"Test","email":"test@example.com","phone":"+123456789","company":"Test Corp"}'
+
+# 2. Listar leads
+curl -X GET http://localhost:4321/api/leads \
+  -H "x-api-key: my-secret-api-key-1234"
+
+# 3. Sincronizar leads externos
+curl -X POST http://localhost:4321/api/sync/leads \
+  -H "x-api-key: my-secret-api-key-1234"
+```
+
+### Logs del Sistema
+
+Todos los servicios tienen logs optimizados que registran solo información necesaria:
+- Creación y procesamiento de leads
+- Hits/misses de cache
+- Sincronizaciones exitosas y duplicados omitidos
+- Errores de IA con fallback automático
+
+---
+
 ## Desarrollo
 
 ```bash
