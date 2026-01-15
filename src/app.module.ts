@@ -5,6 +5,8 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import * as redisStore from 'cache-manager-redis-store';
 import { LeadModule } from './lead/lead.module';
+import { AiModule } from './ai/ai.module';
+import { SyncModule } from './sync/sync.module';
 
 @Module({
   imports: [
@@ -53,7 +55,9 @@ import { LeadModule } from './lead/lead.module';
       }),
     }),
 
-    LeadModule
+    LeadModule,
+    AiModule,
+    SyncModule,
   ],
 })
 export class AppModule { }
