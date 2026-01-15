@@ -11,10 +11,16 @@ export class Lead {
     @Column({ type: 'varchar', length: 100, unique: true })
     email: string;
 
+    @Column({ type: 'varchar', length: 50, nullable: true })
+    phone: string | null;
+
+    @Column({ type: 'varchar', length: 150, nullable: true })
+    company: string | null;
+
     @Column({ type: 'text', nullable: true })
     ai_summary: string | null;
 
-    @Column({ type: 'varchar', length: 255, nullable: true })
+    @Column({ type: 'text', nullable: true })
     ai_next_action: string | null;
 
     @CreateDateColumn()

@@ -11,5 +11,13 @@ export class CreateLeadDto {
     @IsEmail()
     @IsNotEmpty()
     email: string;
+
+    @IsString()
+    @MinLength(3)
+    phone?: string;
+
+    @IsString()
+    @MinLength(2)
+    company?: string;
 }
 
