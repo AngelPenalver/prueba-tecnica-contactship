@@ -1,8 +1,10 @@
-import { CacheModule } from '@nestjs/cache-manager';
-import { Global, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { CacheModule } from '@nestjs/cache-manager';
+import { BullModule } from '@nestjs/bullmq';
+import { Global, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { redisStore } from 'cache-manager-redis-store';
+import { LeadModule } from './lead/lead.module';
 
 @Global()
 @Module({
@@ -11,6 +13,7 @@ import { redisStore } from 'cache-manager-redis-store';
       isGlobal: true,
       envFilePath: '.env',
     }),
+    // TypeORM configuration
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: process.env.POSTGRES_HOST,
@@ -21,6 +24,7 @@ import { redisStore } from 'cache-manager-redis-store';
       autoLoadEntities: true,
       synchronize: true,
     }),
+    // Cache configuration
     CacheModule.register({
       isGlobal: true,
       imports: [ConfigModule],
@@ -30,7 +34,19 @@ import { redisStore } from 'cache-manager-redis-store';
         port: config.get('REDIS_PORT'),
         ttl: config.get('REDIS_TTL'),
       })
-    })
+    }),
+    // BullMQ configuration
+    BullModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        connection: {
+          host: config.get('REDIS_HOST'),
+          port: config.get('REDIS_PORT'),
+        },
+      }),
+    }),
+    LeadModule
   ],
 })
 
