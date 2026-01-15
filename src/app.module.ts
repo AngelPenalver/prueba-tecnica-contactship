@@ -1,53 +1,59 @@
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { CacheModule } from '@nestjs/cache-manager';
 import { BullModule } from '@nestjs/bullmq';
-import { Global, Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { redisStore } from 'cache-manager-redis-store';
+import * as redisStore from 'cache-manager-redis-store';
 import { LeadModule } from './lead/lead.module';
 
-@Global()
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
     }),
-    // TypeORM configuration
-    TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: process.env.POSTGRES_HOST,
-      port: Number(process.env.POSTGRES_PORT),
-      username: process.env.POSTGRES_USER,
-      password: process.env.POSTGRES_PASSWORD,
-      database: process.env.POSTGRES_DB,
-      autoLoadEntities: true,
-      synchronize: true,
+    //TypeOrm configuration
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        type: 'postgres',
+        host: config.get<string>('POSTGRES_HOST'),
+        port: config.get<number>('POSTGRES_PORT'),
+        username: config.get<string>('POSTGRES_USER'),
+        password: config.get<string>('POSTGRES_PASSWORD'),
+        database: config.get<string>('POSTGRES_DB'),
+        autoLoadEntities: true,
+        synchronize: true,
+      }),
     }),
-    // Cache configuration
-    CacheModule.register({
+    //Cache configuration
+    CacheModule.registerAsync({
       isGlobal: true,
       imports: [ConfigModule],
+      inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
         store: redisStore,
-        host: config.get('REDIS_HOST'),
-        port: config.get('REDIS_PORT'),
-        ttl: config.get('REDIS_TTL'),
-      })
+        host: config.get<string>('REDIS_HOST'),
+        port: config.get<number>('REDIS_PORT'),
+        password: config.get<string>('REDIS_PASSWORD'),
+        ttl: Number(config.get('REDIS_TTL') || 600),
+      }),
     }),
-    // BullMQ configuration
+    //BullMQ configuration
     BullModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
         connection: {
-          host: config.get('REDIS_HOST'),
-          port: config.get('REDIS_PORT'),
+          host: config.get<string>('REDIS_HOST'),
+          port: config.get<number>('REDIS_PORT'),
+          password: config.get<string>('REDIS_PASSWORD'),
         },
       }),
     }),
+
     LeadModule
   ],
 })
-
 export class AppModule { }
